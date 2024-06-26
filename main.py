@@ -1,3 +1,5 @@
+#Isaque Borella e Gabriel Hanel
+
 import pygame
 import random
 import os
@@ -6,30 +8,31 @@ from tkinter import simpledialog
 pygame.init()
 
 relogio = pygame.time.Clock()
-icone  = pygame.image.load("assets/icone.png")
-iron = pygame.image.load("assets/iron.png")
-fundo = pygame.image.load("assets/fundo.png")
-fundoStart = pygame.image.load("assets/fundoStart.png")
-fundoDead = pygame.image.load("assets/fundoDead.png")
+icone  = pygame.image.load("Recursos/icone.ico")
+iron = pygame.image.load("Recursos/jogador.png")
+fundo = pygame.image.load("Recursos/fundo.png")
+fundoStart = pygame.image.load("Recursos/fundoStart.png")
+fundoDead = pygame.image.load("Recursos/fundoDead.png")
 
-missel = pygame.image.load("assets/missile.png")
+missel = pygame.image.load("Recursos/cartão.png")
+missel2 = pygame.image.load("Recursos/cartão2.png")
 tamanho = (800,600)
 tela = pygame.display.set_mode( tamanho ) 
 pygame.display.set_caption("Iron Man do Marcão")
 pygame.display.set_icon(icone)
-missileSound = pygame.mixer.Sound("assets/missile.wav")
-explosaoSound = pygame.mixer.Sound("assets/explosao.wav")
+explosaoSound = pygame.mixer.Sound("Recursos/explosão.mp3")
 fonte = pygame.font.SysFont("comicsans",28)
 fonteStart = pygame.font.SysFont("comicsans",55)
 fonteMorte = pygame.font.SysFont("arial",120)
-pygame.mixer.music.load("assets/ironsound.mp3")
+pygame.mixer.music.load("Recursos/ironsound.mp3")
+
 
 branco = (255,255,255)
 preto = (0, 0 ,0 )
+amarelo = (255, 255, 0)
 
 
 def jogar(nome):
-    pygame.mixer.Sound.play(missileSound)
     pygame.mixer.music.play(-1)
     posicaoXPersona = 400
     posicaoYPersona = 300
@@ -39,11 +42,27 @@ def jogar(nome):
     posicaoYMissel = -240
     velocidadeMissel = 1
     pontos = 0
-    larguraPersona = 250
-    alturaPersona = 127
+    larguraPersona = 127
+    alturaPersona = 250
     larguaMissel  = 50
-    alturaMissel  = 250
+    alturaMissel  = 115
     dificuldade  = 20
+
+    #cartão vermelho
+
+    posicaoXMissel2 = 200
+    posicaoYMissel2 = -240
+    velocidadeMissel2 = 1
+    larguraMissel2  = 50
+    alturaMissel2  = 115
+
+    bolaX = 750
+    bolaY = 50
+    bolaRaio = 20
+    bolaDirecao = 1  # 1 para aumentar, -1 para diminuir
+    bolaMaxRaio = 40
+    bolaMinRaio = 20
+    bolaVelocidade = 0.5
 
     while True:
         for evento in pygame.event.get():
@@ -57,28 +76,13 @@ def jogar(nome):
                 movimentoXPersona = 0
             elif evento.type == pygame.KEYUP and evento.key == pygame.K_LEFT:
                 movimentoXPersona = 0
-            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_UP:
-                movimentoYPersona = -10
-            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_DOWN:
-                movimentoYPersona = 10
-            elif evento.type == pygame.KEYUP and evento.key == pygame.K_UP:
-                movimentoYPersona = 0
-            elif evento.type == pygame.KEYUP and evento.key == pygame.K_DOWN:
-                movimentoYPersona = 0
                 
-        posicaoXPersona = posicaoXPersona + movimentoXPersona            
-        posicaoYPersona = posicaoYPersona + movimentoYPersona            
+        posicaoXPersona = posicaoXPersona + movimentoXPersona                   
         
         if posicaoXPersona < 0 :
             posicaoXPersona = 10
-        elif posicaoXPersona >550:
-            posicaoXPersona = 540
-            
-        if posicaoYPersona < 0 :
-            posicaoYPersona = 10
-        elif posicaoYPersona > 473:
-            posicaoYPersona = 463
-        
+        elif posicaoXPersona >750:
+            posicaoXPersona = 740
             
         tela.fill(branco)
         tela.blit(fundo, (0,0) )
@@ -90,8 +94,21 @@ def jogar(nome):
             posicaoYMissel = -240
             pontos = pontos + 1
             velocidadeMissel = velocidadeMissel + 1
-            posicaoXMissel = random.randint(0,800)
-            pygame.mixer.Sound.play(missileSound)
+            posicaoXMissel = random.randint(0, 800)
+
+        tela.blit(missel, (posicaoXMissel, posicaoYMissel))
+
+        # Atualiza a posição do segundo inimigo
+        posicaoYMissel2 = posicaoYMissel2 + velocidadeMissel2
+        if posicaoYMissel2 > 600:
+            posicaoYMissel2 = -240
+            pontos = pontos + 1
+            velocidadeMissel2 = velocidadeMissel2 + 0.7
+            posicaoXMissel2 = random.randint(0, 800)
+        
+        
+        
+        tela.blit(missel2, (posicaoXMissel2, posicaoYMissel2))
             
             
         tela.blit( missel, (posicaoXMissel, posicaoYMissel) )
@@ -110,10 +127,16 @@ def jogar(nome):
                 dead(nome, pontos)
         
     
-        
+        bolaRaio += bolaDirecao * bolaVelocidade
+        if bolaRaio >= bolaMaxRaio or bolaRaio <= bolaMinRaio:
+            bolaDirecao *= -1
         pygame.display.update()
         relogio.tick(60)
 
+        pygame.draw.circle(tela, amarelo, (bolaX, bolaY), int(bolaRaio))
+        
+        pygame.display.update()
+        relogio.tick(60)
 
 def dead(nome, pontos):
     pygame.mixer.music.stop()
@@ -207,6 +230,7 @@ def start():
                     jogar(nome)
                 elif buttonRanking.collidepoint(evento.pos):
                     ranking()
+                    
 
         tela.fill(branco)
         tela.blit(fundoStart, (0,0))
